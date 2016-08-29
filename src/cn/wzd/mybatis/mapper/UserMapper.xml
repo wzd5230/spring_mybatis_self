@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  
+<mapper namespace="cn.wzd.mybatis.mapper.UserMapper">
+
+  <!-- 开启二级缓存 -->
+  <cache/>
+
+  <!-- 定义ResultMap，从user表到cn.wzd.mybatis.po.User -->
+  <resultMap type="user" id="UserResultMap">
+  	<id column="user_id" property="id"/>
+  	
+  	<result column="user_username" property="username"/>
+  	<result column="user_birthday" property="birthday"/>
+  	<result column="user_sex" property="sex"/>
+  	<result column="user_address" property="address"/>
+  </resultMap>
+  
+  <!-- 定义UserAndOrdersResultMapper，查询用户关联查询Order表 -->
+  <resultMap type="user" id="UserAndOrdersResultMapper" extends="UserResultMap">
+  
+    <!-- 关联一对多查询，使用嵌套查询的方式 -->
+    <collection property="ordersList" ofType="orders" column="user_id" select="findOrderByUserId">
+    </collection>
+  </resultMap>
+  
+  
+
+  <select id="findUserByIdMapper" resultMap="UserResultMap">
+	SELECT
+	  id AS user_id,
+	  username AS user_username,
+	  birthday AS user_birthday,
+	  sex AS user_sex,
+	  address AS user_address
+	FROM
+	  user
+	WHERE
+	  id=#{value}	<!-- #{}占位符,按照格式替换 -->
+  </select>
+  
+  <!-- 查询用户表，关联查询订单表 -->
+  <select id="findUserAndOrdersResultMapper" resultMap="UserAndOrdersResultMapper">
+  	SELECT
+	  user.id AS user_id,
+	  user.username AS user_username,
+	  user.birthday AS user_birthday,
+	  user.sex AS user_sex,
+	  user.address AS user_address
+	FROM
+	  user AS user
+  </select>
+  
+  <!-- 通过userId关联查询orders表 -->
+  <select id="findOrderByUserId" parameterType="int" resultType="orders">
+    SELECT
+	  orders.id AS id,
+	  orders.user_id AS user_id,
+	  orders.number AS number,
+	  orders.createtime AS createtime,
+	  orders.note AS note
+	FROM 
+	  orders as orders
+	WHERE
+	  orders.user_id = #{value}
+  </select>
+</mapper>
